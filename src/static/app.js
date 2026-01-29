@@ -22,28 +22,60 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const spotsLeft = details.max_participants - details.participants.length;
 
-        // Build participants list with unregister buttons
-        let participantsHTML = '';
-        if (details.participants.length > 0) {
-          participantsHTML = '<div class="participants-section"><strong>Participants:</strong><ul class="participants-list">';
-          details.participants.forEach(email => {
-            participantsHTML += `
-              <li>
-                ${email}
-                <button class="unregister-btn" data-activity="${name}" data-email="${email}">Unregister</button>
-              </li>
-            `;
-          });
-          participantsHTML += '</ul></div>';
-        }
+        // Create activity header and details
+        const title = document.createElement("h4");
+        title.textContent = name;
+        activityCard.appendChild(title);
 
-        activityCard.innerHTML = `
-          <h4>${name}</h4>
-          <p>${details.description}</p>
-          <p><strong>Schedule:</strong> ${details.schedule}</p>
-          <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
-          ${participantsHTML}
-        `;
+        const description = document.createElement("p");
+        description.textContent = details.description;
+        activityCard.appendChild(description);
+
+        const schedule = document.createElement("p");
+        const scheduleLabel = document.createElement("strong");
+        scheduleLabel.textContent = "Schedule:";
+        schedule.appendChild(scheduleLabel);
+        schedule.appendChild(document.createTextNode(" " + details.schedule));
+        activityCard.appendChild(schedule);
+
+        const availability = document.createElement("p");
+        const availabilityLabel = document.createElement("strong");
+        availabilityLabel.textContent = "Availability:";
+        availability.appendChild(availabilityLabel);
+        availability.appendChild(document.createTextNode(" " + spotsLeft + " spots left"));
+        activityCard.appendChild(availability);
+
+        // Build participants list with unregister buttons
+        if (details.participants.length > 0) {
+          const participantsSection = document.createElement("div");
+          participantsSection.className = "participants-section";
+          
+          const participantsLabel = document.createElement("strong");
+          participantsLabel.textContent = "Participants:";
+          participantsSection.appendChild(participantsLabel);
+          
+          const participantsList = document.createElement("ul");
+          participantsList.className = "participants-list";
+          
+          details.participants.forEach(email => {
+            const listItem = document.createElement("li");
+            
+            const emailText = document.createTextNode(email);
+            listItem.appendChild(emailText);
+            
+            const unregisterBtn = document.createElement("button");
+            unregisterBtn.className = "unregister-btn";
+            unregisterBtn.textContent = "Unregister";
+            unregisterBtn.setAttribute("data-activity", name);
+            unregisterBtn.setAttribute("data-email", email);
+            
+            listItem.appendChild(unregisterBtn);
+            participantsList.appendChild(listItem);
+          });
+          
+          participantsSection.appendChild(participantsList);
+          activityCard.appendChild(participantsSection);
+        }
 
         activitiesList.appendChild(activityCard);
 
@@ -53,16 +85,18 @@ document.addEventListener("DOMContentLoaded", () => {
         option.textContent = name;
         activitySelect.appendChild(option);
       });
-
-      // Attach event listeners to unregister buttons
-      document.querySelectorAll('.unregister-btn').forEach(button => {
-        button.addEventListener('click', handleUnregister);
-      });
     } catch (error) {
       activitiesList.innerHTML = "<p>Failed to load activities. Please try again later.</p>";
       console.error("Error fetching activities:", error);
     }
   }
+
+  // Use event delegation for unregister buttons to avoid duplicate listeners
+  activitiesList.addEventListener('click', (event) => {
+    if (event.target.classList.contains('unregister-btn')) {
+      handleUnregister(event);
+    }
+  });
 
   // Handle form submission
   signupForm.addEventListener("submit", async (event) => {
